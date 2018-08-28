@@ -1,0 +1,15 @@
+# Add any directories, files, or patterns you don't want to be tracked by version control
+**/.idea
+**.iml
+**/build
+**/.gradle
+local.properties
+*.apk
+**/captures
+audience/gradlew.bat
+audience/gradlew
+audience/gradle/wrapper/gradle-wrapper.properties
+audience/gradle/wrapper/gradle-wrapper.jar
+
+# For more convenient development you can clone bwcj repository directly in the Sample application
+/bwcj
