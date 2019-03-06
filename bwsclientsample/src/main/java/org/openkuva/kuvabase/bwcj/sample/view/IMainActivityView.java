@@ -43,4 +43,6 @@ public interface IMainActivityView {
     void updateSendDashResult(String result);
 
     void showMessage(String message);
+
+    void showMnemonic(String words);
 }

@@ -69,4 +69,9 @@ public class InMainThreadMainActivityView implements IMainActivityView {
     public void showMessage(String message) {
         handler.post(() -> origin.showMessage(message));
     }
+
+    @Override
+    public void showMnemonic(String words) {
+        handler.post(() -> origin.showMnemonic(words));
+    }
 }

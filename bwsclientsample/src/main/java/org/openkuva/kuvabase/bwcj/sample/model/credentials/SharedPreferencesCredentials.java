@@ -39,10 +39,8 @@ import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.openkuva.kuvabase.bwcj.data.entity.interfaces.credentials.ICredentials;
 import org.openkuva.kuvabase.bwcj.data.repository.exception.NotFoundException;
-import org.openkuva.kuvabase.bwcj.domain.utils.ListUtils;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static org.bitcoinj.core.NetworkParameters.fromID;
 
@@ -93,18 +91,13 @@ public class SharedPreferencesCredentials implements ICredentials {
     }
 
     @Override
-    public void setSeedWords(List<String> seedWords) {
-        String seed = "";
-        for (String word : seedWords) {
-            seed += " " + word;
-        }
-
-        sharedPreferences.edit().putString(WALLET_SEED, seed.trim()).apply();
+    public void setSeed(byte[] seedWords) {
+        sharedPreferences.edit().putString(WALLET_SEED, Arrays.toString(seedWords)).apply();
     }
 
     @Override
-    public List<String> getSeedWords() {
-        return ListUtils.split(sharedPreferences.getString(WALLET_SEED, ""));
+    public byte[] getSeed() {
+        return getBytes(sharedPreferences.getString(WALLET_SEED, ""));
     }
 
     @Override
@@ -120,5 +113,17 @@ public class SharedPreferencesCredentials implements ICredentials {
     @Override
     public void setNetworkParameters(NetworkParameters network) {
         sharedPreferences.edit().putString(NETWORK_PARAMS, network.getId()).apply();
+    }
+
+    private byte[] getBytes(String stringArray) {
+        if (stringArray == null) {
+            throw new IllegalArgumentException("string can not be null");
+        }
+        String[] split = stringArray.substring(1, stringArray.length() - 1).split(", ");
+        byte[] bytes = new byte[split.length];
+        for (int i = 0; i < split.length; i++) {
+            bytes[i] = Byte.parseByte(split[i]);
+        }
+        return bytes;
     }
 }

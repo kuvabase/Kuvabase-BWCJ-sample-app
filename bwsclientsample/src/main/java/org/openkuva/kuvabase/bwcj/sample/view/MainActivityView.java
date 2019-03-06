@@ -42,19 +42,23 @@ public class MainActivityView implements IMainActivityView {
     private final TextView walletAddress;
     private final TextView walletBalance;
     private final TextView sendDashResult;
-    private final Context  context;
+    private final TextView tvMnemonic;
+    private final Context context;
 
     public MainActivityView(
             TextView walletId,
             TextView walletAddress,
             TextView walletBalance,
-            TextView sendDashResult, Context context) {
+            TextView sendDashResult,
+            TextView tvMnemonic,
+            Context context) {
 
         this.walletId = walletId;
         this.walletAddress = walletAddress;
         this.walletBalance = walletBalance;
         this.sendDashResult = sendDashResult;
         this.context = context;
+        this.tvMnemonic = tvMnemonic;
     }
 
     @Override
@@ -80,5 +84,10 @@ public class MainActivityView implements IMainActivityView {
     @Override
     public void showMessage(String message) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void showMnemonic(String words) {
+        tvMnemonic.setText(words);
     }
 }

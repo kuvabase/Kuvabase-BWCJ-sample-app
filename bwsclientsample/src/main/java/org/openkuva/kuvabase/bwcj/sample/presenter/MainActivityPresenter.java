@@ -38,6 +38,7 @@ import org.openkuva.kuvabase.bwcj.data.entity.interfaces.credentials.ICredential
 import org.openkuva.kuvabase.bwcj.data.entity.interfaces.transaction.ITransactionProposal;
 import org.openkuva.kuvabase.bwcj.data.entity.interfaces.wallet.IWallet;
 import org.openkuva.kuvabase.bwcj.data.entity.pojo.transaction.CustomData;
+import org.openkuva.kuvabase.bwcj.domain.useCases.credentials.IInitializeCredentialsUseCase;
 import org.openkuva.kuvabase.bwcj.domain.useCases.exchange.getRate.IGetRateUseCases;
 import org.openkuva.kuvabase.bwcj.domain.useCases.transactionProposal.addNewTxp.IAddNewTxpUseCase;
 import org.openkuva.kuvabase.bwcj.domain.useCases.transactionProposal.broadcastTxp.IBroadcastTxpUseCase;
@@ -48,11 +49,14 @@ import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.createWallet.ICreateWal
 import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.getWalletAddress.IGetWalletAddressesUseCase;
 import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.getWalletBalance.IGetWalletBalanceUseCase;
 import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.joinWalletInCreation.IJoinWalletInCreationUseCase;
+import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.postWalletAddress.ICreateNewMainAddressesFromWalletUseCase;
 import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.recoveryWalletFromMnemonic.IRecoveryWalletFromMnemonicUseCase;
 import org.openkuva.kuvabase.bwcj.sample.view.IMainActivityView;
+import org.openkuva.kuvabase.bwcj.service.bitcoreWalletService.interfaces.IBitcoreWalletServerAPI;
 import org.openkuva.kuvabase.bwcj.service.bitcoreWalletService.interfaces.address.IAddressesResponse;
 import org.openkuva.kuvabase.bwcj.service.rate.interfaces.IRateResponse;
 
+import static org.openkuva.kuvabase.bwcj.domain.utils.ListUtils.join;
 import static org.openkuva.kuvabase.bwcj.domain.utils.ListUtils.split;
 
 public class MainActivityPresenter implements IMainActivityPresenter {
@@ -70,6 +74,10 @@ public class MainActivityPresenter implements IMainActivityPresenter {
     private final IBroadcastTxpUseCase broadcastTxpUseCase;
     private final IDeleteAllPendingTxpsUseCase deleteAllPendingTxpsUseCase;
     private final IRecoveryWalletFromMnemonicUseCase recoveryWalletFromMnemonicUseCase;
+    private final IBitcoreWalletServerAPI bitcoreWalletServerAPI;
+    private final IInitializeCredentialsUseCase initializeCredentialsUseCase;
+    private final ICreateNewMainAddressesFromWalletUseCase getWalletAddressesUseCases;
+
 
     public MainActivityPresenter(
             IMainActivityView view,
@@ -84,7 +92,10 @@ public class MainActivityPresenter implements IMainActivityPresenter {
             ISignTxpUseCase signTxpUseCase,
             IBroadcastTxpUseCase broadcastTxpUseCase,
             IDeleteAllPendingTxpsUseCase deleteAllPendingTxpsUseCase,
-            IRecoveryWalletFromMnemonicUseCase recoveryWalletFromMnemonicUseCase) {
+            IRecoveryWalletFromMnemonicUseCase recoveryWalletFromMnemonicUseCase,
+            IBitcoreWalletServerAPI bitcoreWalletServerAPI,
+            IInitializeCredentialsUseCase initializeCredentialsUseCase,
+            ICreateNewMainAddressesFromWalletUseCase getWalletAddressesUseCases) {
 
         this.view = view;
         this.credentials = credentials;
@@ -99,13 +110,18 @@ public class MainActivityPresenter implements IMainActivityPresenter {
         this.broadcastTxpUseCase = broadcastTxpUseCase;
         this.deleteAllPendingTxpsUseCase = deleteAllPendingTxpsUseCase;
         this.recoveryWalletFromMnemonicUseCase = recoveryWalletFromMnemonicUseCase;
+        this.bitcoreWalletServerAPI = bitcoreWalletServerAPI;
+        this.initializeCredentialsUseCase = initializeCredentialsUseCase;
+        this.getWalletAddressesUseCases = getWalletAddressesUseCases;
     }
 
     @Override
     public void createWallet() {
         try {
+            view.showMnemonic(join(initializeCredentialsUseCase.execute(""), " "));
             String walletId = createWallet.execute();
             joinWalletInCreationUseCase.execute(walletId);
+            getWalletAddressesUseCases.create();
             view.updateWalletId(walletId);
         } catch (Exception e) {
             view.showMessage(e.getMessage());
@@ -144,8 +160,9 @@ public class MainActivityPresenter implements IMainActivityPresenter {
                             msg,
                             false,
                             new CustomData(
-                                    Double.parseDouble(rate.getRate()),
+                                    rate.getRate(),
                                     "send",
+                                    null,
                                     null,
                                     null));
             ITransactionProposal publishedTxp = publishTxpUseCase.execute(proposal);
@@ -161,7 +178,7 @@ public class MainActivityPresenter implements IMainActivityPresenter {
     public void onRecovery(String mnemonic) {
         try {
             IWallet response =
-                    recoveryWalletFromMnemonicUseCase.execute(split(mnemonic), new ECKey());
+                    recoveryWalletFromMnemonicUseCase.execute(split(mnemonic), "", new ECKey());
 
             view.updateWalletBalance(
                     String.valueOf(

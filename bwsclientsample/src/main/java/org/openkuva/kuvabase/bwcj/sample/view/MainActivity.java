@@ -45,8 +45,9 @@ import android.widget.TextView;
 
 import com.google.gson.GsonBuilder;
 
-import org.bitcoinj.params.TestNet3Params;
+import org.bitcoinj.params.MainNetParams;
 import org.openkuva.kuvabase.bwcj.data.entity.interfaces.credentials.ICredentials;
+import org.openkuva.kuvabase.bwcj.domain.useCases.credentials.InitializeCredentialsWithRandomValueUseCase;
 import org.openkuva.kuvabase.bwcj.domain.useCases.exchange.getRate.GetRateUseCases;
 import org.openkuva.kuvabase.bwcj.domain.useCases.transactionProposal.addNewTxp.AddNewTxpUseCase;
 import org.openkuva.kuvabase.bwcj.domain.useCases.transactionProposal.broadcastTxp.BroadcastTxpUseCase;
@@ -57,7 +58,10 @@ import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.createWallet.CreateWall
 import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.getWalletAddress.GetWalletAddressesUseCase;
 import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.getWalletBalance.GetWalletBalanceUseCase;
 import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.joinWalletInCreation.JoinWalletInCreationUseCase;
+import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.postWalletAddress.CreateNewMainAddressesFromWalletUseCase;
 import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.recoveryWalletFromMnemonic.RecoveryWalletFromMnemonicUseCase;
+import org.openkuva.kuvabase.bwcj.domain.utils.CommonNetworkParametersBuilder;
+import org.openkuva.kuvabase.bwcj.domain.utils.transactions.TransactionBuilder;
 import org.openkuva.kuvabase.bwcj.sample.ApiUrls;
 import org.openkuva.kuvabase.bwcj.sample.R;
 import org.openkuva.kuvabase.bwcj.sample.model.credentials.CredentialsRepositoryProvider;
@@ -110,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void setupCredentials() {
         credentials = CredentialsRepositoryProvider.get(this);
-        credentials.setNetworkParameters(TestNet3Params.get());
+        credentials.setNetworkParameters(MainNetParams.get());
     }
 
     private void setupPresenter() {
@@ -123,9 +127,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 walletAddressTv,
                                                 walletBalanceTv,
                                                 sendDashResultTv,
+                                                findViewById(R.id.tv_words),
                                                 this),
-                                        new Handler(Looper.getMainLooper())
-                                ),
+                                        new Handler(Looper.getMainLooper())),
                                 credentials,
                                 new CreateWalletUseCase(
                                         credentials,
@@ -144,16 +148,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         bitcoreWalletServerAPI),
                                 new PublishTxpUseCase(
                                         bitcoreWalletServerAPI,
-                                        credentials),
+                                        credentials,
+                                        new TransactionBuilder(
+                                                new CommonNetworkParametersBuilder())),
                                 new SignTxpUseCase(
                                         bitcoreWalletServerAPI,
-                                        credentials),
+                                        credentials,
+                                        new TransactionBuilder(
+                                                new CommonNetworkParametersBuilder())),
                                 new BroadcastTxpUseCase(
                                         bitcoreWalletServerAPI),
                                 new DeleteAllPendingTxpsUseCase(
                                         bitcoreWalletServerAPI),
                                 new RecoveryWalletFromMnemonicUseCase(
                                         credentials,
+                                        bitcoreWalletServerAPI),
+                                bitcoreWalletServerAPI,
+                                new InitializeCredentialsWithRandomValueUseCase(credentials),
+                                new CreateNewMainAddressesFromWalletUseCase(
                                         bitcoreWalletServerAPI)),
                         Executors.newCachedThreadPool());
     }
