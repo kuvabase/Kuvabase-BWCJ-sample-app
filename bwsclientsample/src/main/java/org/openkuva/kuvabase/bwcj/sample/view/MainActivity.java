@@ -61,6 +61,8 @@ import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.joinWalletInCreation.Jo
 import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.postWalletAddress.CreateNewMainAddressesFromWalletUseCase;
 import org.openkuva.kuvabase.bwcj.domain.useCases.wallet.recoveryWalletFromMnemonic.RecoveryWalletFromMnemonicUseCase;
 import org.openkuva.kuvabase.bwcj.domain.utils.CommonNetworkParametersBuilder;
+import org.openkuva.kuvabase.bwcj.domain.utils.CopayersCryptUtils;
+import org.openkuva.kuvabase.bwcj.domain.utils.DashCoinTypeRetriever;
 import org.openkuva.kuvabase.bwcj.domain.utils.transactions.TransactionBuilder;
 import org.openkuva.kuvabase.bwcj.sample.ApiUrls;
 import org.openkuva.kuvabase.bwcj.sample.R;
@@ -133,10 +135,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 credentials,
                                 new CreateWalletUseCase(
                                         credentials,
+                                        new CopayersCryptUtils(
+                                                new DashCoinTypeRetriever()),
                                         bitcoreWalletServerAPI),
                                 new JoinWalletInCreationUseCase(
                                         credentials,
-                                        bitcoreWalletServerAPI),
+                                        bitcoreWalletServerAPI,
+                                        new CopayersCryptUtils(
+                                                new DashCoinTypeRetriever())),
                                 new GetWalletAddressesUseCase(
                                         bitcoreWalletServerAPI),
                                 new GetWalletBalanceUseCase(
@@ -150,12 +156,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         bitcoreWalletServerAPI,
                                         credentials,
                                         new TransactionBuilder(
-                                                new CommonNetworkParametersBuilder())),
+                                                new CommonNetworkParametersBuilder()),
+                                        new CopayersCryptUtils(new DashCoinTypeRetriever())),
                                 new SignTxpUseCase(
                                         bitcoreWalletServerAPI,
                                         credentials,
                                         new TransactionBuilder(
-                                                new CommonNetworkParametersBuilder())),
+                                                new CommonNetworkParametersBuilder()),
+                                        new CopayersCryptUtils(new DashCoinTypeRetriever())),
                                 new BroadcastTxpUseCase(
                                         bitcoreWalletServerAPI),
                                 new DeleteAllPendingTxpsUseCase(
@@ -185,7 +193,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 .Builder()
                                                 .addInterceptor(
                                                         new BWCRequestSignatureInterceptor(
-                                                                CredentialsRepositoryProvider.get(this), ApiUrls.URL_BWS))
+                                                                CredentialsRepositoryProvider.get(this),
+                                                                new CopayersCryptUtils(new DashCoinTypeRetriever()),
+                                                                ApiUrls.URL_BWS))
                                                 .addInterceptor(
                                                         new HttpLoggingInterceptor()
                                                                 .setLevel(HttpLoggingInterceptor.Level.BODY))

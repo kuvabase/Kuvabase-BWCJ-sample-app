@@ -42,7 +42,7 @@ dependencies {
 
     implementation 'org.dashj:dashj-core:0.14.4.4'
 
-    implementation 'org.openkuva.kuvabase:bwcj:0.1.8.21'
+    implementation 'org.openkuva.kuvabase:bwcj:0.1.10'
 //    implementation project(':bwcj')
 
     testImplementation 'junit:junit:4.12'

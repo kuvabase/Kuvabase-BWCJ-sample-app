@@ -33,6 +33,7 @@
 
 package org.openkuva.kuvabase.bwcj.sample.presenter;
 
+import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.openkuva.kuvabase.bwcj.data.entity.interfaces.credentials.ICredentials;
 import org.openkuva.kuvabase.bwcj.data.entity.interfaces.transaction.ITransactionProposal;
@@ -156,7 +157,7 @@ public class MainActivityPresenter implements IMainActivityPresenter {
             ITransactionProposal proposal =
                     postTransaction.execute(
                             address,
-                            dash,
+                            Coin.parseCoin(dash).value,
                             msg,
                             false,
                             new CustomData(
